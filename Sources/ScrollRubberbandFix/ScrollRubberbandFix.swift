@@ -388,10 +388,27 @@ public struct ScrollRubberbandFixer: NSViewRepresentable {
         }
 
         func applyElasticity() {
-            guard let scrollView = enclosingScrollView else { return }
+            if let scrollView = enclosingScrollView {
+                configure(scrollView)
+            } else if let root = superview?.superview ?? superview {
+                configureDescendantScrollViews(in: root)
+            }
+        }
+
+        private func configure(_ scrollView: NSScrollView) {
             scrollView.verticalScrollElasticity = verticalElasticity
             if let horizontalElasticity {
                 scrollView.horizontalScrollElasticity = horizontalElasticity
+            }
+        }
+
+        private func configureDescendantScrollViews(in view: NSView) {
+            for subview in view.subviews where subview !== self {
+                if let scrollView = subview as? NSScrollView {
+                    configure(scrollView)
+                } else {
+                    configureDescendantScrollViews(in: subview)
+                }
             }
         }
     }
